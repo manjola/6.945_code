@@ -1,12 +1,11 @@
 ;;; 6.945 Problem Set 1
-;;; 
 ;;; Manushaqe Muco
 ;;; manjola@mit.edu
 
-(load "~/6.945/6.945_code/ps01/regexp.scm")
+(load "regexp.scm")
 
 
-;Problem 1.1
+;;; Problem 1.1
 (define (r:* expr)
  ;0 or more copies
    (r:repeat 0 #f expr))
@@ -15,142 +14,48 @@
  ;1 or more times
    (r:repeat 1 #f expr))
 
-(define r:test-cases
-  '(((r:quote "abc") "abc" #t)
-    ((r:quote "abc") "xbc" #f)
-    ((r:quote "abc") "abx" #f)
-    ((r:quote "abc") "ababc" #t)
-    ((r:quote ".?{|t+") ".?{|t+" #t) ; test BRE vs ERE quoting
-    ((r:quote ".?{|t+") "a{" #f)
-    ((r:quote ".?{|t+") "ttt" #f)
-    ((r:repeat 0 #f (r:seq (r:alt (r:quote "cat") (r:quote "dog"))
-			   (r:quote "qux"))) "dogquxdogqux" #t)
-    ((r:seq (r:quote "cat") (r:repeat 0 #f (r:quote "dog")) (r:quote "qux")) "catdogqux" #t)
-    ((r:seq (r:quote "cat") (r:repeat 0 #f (r:quote "dog")) (r:quote "dogqux")) "catdogqux" #t)
-    ((r:seq (r:quote "cat") (r:repeat 1 #f (r:quote "dog")) (r:quote "dogqux")) "catdogdogqux" #t)
-    ((r:seq (r:quote "cat") (r:repeat 1 #f (r:quote "dog")) (r:quote "dogqux")) "catdogcar" #f)
-    ((r:seq (r:bol) (r:quote "abc") (r:eol)) "abc" #t)
-    ((r:seq (r:bol) (r:quote "abc") (r:eol)) "aabc" #f)
-    ((r:bol) "abc" #t)
-    ((r:eol) "abc" #t)
-    ((r:seq (r:quote "a") (r:dot) (r:quote "c")) "abc" #t)
-    ((r:seq (r:quote "a") (r:dot) (r:quote "c")) "axc" #t)
-    ((r:seq (r:quote "a") (r:repeat 0 #f (r:dot)) (r:quote "c")) "ac" #t)
-    ((r:seq (r:quote "a") (r:char-from "bc") (r:quote "d")) "abc" #f)
-    ((r:seq (r:quote "a") (r:char-from "bc") (r:quote "d")) "acd" #t)
-    ((r:seq (r:quote "a") (r:char-from "bcd") (r:quote "e")) "ace" #t)
-    ((r:seq (r:quote "a") (r:char-from "-b")) "a-" #t)
-    ((r:seq (r:quote "a") (r:char-from "]") (r:quote "b")) "a]b" #t)
-    ((r:seq (r:quote "a") (r:char-not-from "bc") (r:quote "d")) "aed" #t)
-    ((r:seq (r:quote "a") (r:char-not-from "bc") (r:quote "d")) "abd" #f)
-    ((r:seq (r:quote "a") (r:char-not-from "-bc") (r:quote "d")) "a-c" #f)
-    ((r:seq (r:eol) (r:quote "b")) "b" #f)
-    ((r:seq (r:quote "a") (r:* (r:quote "b")) (r:quote "bc")) "abbbbc" #t)
-    ((r:seq (r:quote "a") (r:repeat 4 5 (r:quote "b")) (r:quote "bc")) "abbbbc" #f)
-    ((r:seq (r:quote "a") (r:alt (r:quote "b") (r:quote "c")) (r:quote
-							       "d")) "abd" #t)
-    ((r:seq (r:quote "a") (r:alt (r:quote "b") (r:quote "c")) (r:quote
-                                                               "d")) "aed" #f)
-    ((r:* (r:alt (r:+ (r:quote "a")) (r:quote "b"))) "ab" #t)
-    ((r:+ (r:alt (r:+ (r:quote "a")) (r:quote "b"))) "aaaa" #t)
-    ((r:* (r:char-not-from "ab")) "cde" #t)
-    ((r:seq (r:alt (r:quote "a") (r:quote "b") (r:quote "c") 
-		   (r:quote "d") (r:quote "e")) (r:quote "f")) "ef" #t)
-    ((r:seq (r:quote "a") (r:* (r:char-from "bc"))
-	    (r:* (r:quote "c"))) "abc" #t)
-    ((let ((digit
-	    (r:char-from "0123456789")))
-       (r:seq (r:bol)
-	      (r:quote "[")
-	      digit
-	      digit
-	      (r:quote "]")
-	      (r:quote ".")
-	      (r:quote " ")
-	      (r:char-from "ab")
-	      (r:repeat 3 5 (r:alt (r:quote "cat") (r:quote "dog")))
-	      (r:char-not-from "def")
-	      (r:eol))) "[09]. acatdogdogcats" #t)
-    ((let ((digit
-	    (r:char-from "0123456789")))
-       (r:seq (r:bol)
-	      (r:quote "[")
-	      digit
-	      digit
-	      (r:quote "]")
-	      (r:quote ".")
-	      (r:quote " ")
-	      (r:char-from "ab")
-	      (r:repeat 3 5 (r:alt (r:quote "cat") (r:quote "dog")))
-	      (r:char-not-from "def")
-	      (r:eol))) "[10]. ifacatdogdogs" #f)
-    ((let ((digit
-	    (r:char-from "0123456789")))
-       (r:seq (r:bol)
-	      (r:quote "[")
-	      digit
-	      digit
-	      (r:quote "]")
-	      (r:quote ".")
-	      (r:quote " ")
-	      (r:char-from "ab")
-	      (r:repeat 3 5 (r:alt (r:quote "cat") (r:quote "dog")))
-	      (r:char-not-from "def")
-	      (r:eol))) "[11]. ifacatdogdogsme" #f)
-    ))
 
-(define (eval-regexp quoted-expression)
-  (eval quoted-expression user-initial-environment))
+;;; Problem 1.2
+;a) If we try to evaluate (r:repeat 0 1 expr), we'll be stuck in a loop. 
+;   We'll need to evaluate (r:repeat 0 1 expr) to evaluate (r:repeat 0 1 expr)
 
-(define (r:run-tests test-cases grep-proc eval-proc)
-  ;; Test the regular expressions for the given test cases, printing
-  ;; out cases where they fail, and printing nothing if all tests
-  ;; succeed.
-  ;; Arguments:
-  ;;    test-cases: List of 3-tuple test cases,
-  ;;    grep-proc: The procedure to grep with, i.e. r:grep or r:egrep
-  ;;    eval-proc: The procedure to evaluate and compile the quoted
-  ;;    Scheme regular expression in the test case.
-  ;;
-  (define temp-filename "tmptests.txt")
-  
-  (define (write-to-file filename string)
-    (let ((outport (open-output-file filename)))
-      (display string outport)
-      (newline outport)
-      (close-output-port outport)))
+;b) Advantages:
+;   (1) Code is more clear and modular. r:? can be reused elsewhere. 
+;   (2) The regular expression produced will be shorter. We don't want a regular expression so big 
+;   that the shell cannot evaluate it, for big max or min values. 
 
-  (define (run-test test-case)
-    (let ((test-string (cadr test-case))
-	  (test-query (car test-case)))
-      (begin
-	(write-to-file temp-filename test-string)
-	(grep-proc (eval-proc test-query) temp-filename))))
+;c) Ben's proposal advantages:
+;   (1) Shorter expression. For Bonnie's case your epression gets longer each time you have to match a character more than 1 times. 
+;   In Ben's case it's more concise in specifying how many times you need to match the given character and shorter too. 
+;   (2) Uses built-in machinery for BREs (grep utility built-ins), so it will run faster.
+;   (3) Because it is used in BRE, it will be available for both BRE and ERE systems. ? could be available only to EREs. 
 
-  (define (test-case-correct? result test-case)
-    (let ((expected-result (caddr test-case)))
-      (if (not expected-result)
-	  (not result)
-	  (not (not result)))))
+(define (r:repeat min max expr)
+	(apply r:seq (list expr "\\{" (if min (number->string min) "") "," 		
+			 (if max (number->string max) "") "\\}"))) 
 
-  (define (check-test-case test-case)
-    (let ((result (run-test test-case)))
-      (if (test-case-correct? result test-case)
-	  #t
-	  (begin
-	    (display "******************* Test failed *****************")
-	    (newline)
-	    (display "Case: ") (display test-case)
-	    (newline)
-	    #f))))
 
-  (define (all lst)
-    (reduce (lambda (x y) (and x y)) #t lst))
-  
-  (all (map check-test-case test-cases)))
+;;; Problem 1.3 (gist of it)
+;;; Reduce nesting indroduced by r:alt, r:repeat, and r:seq. Make r:seq just append string (we can afford to do that, because we don't need to differentiate
+;;; unless it's alt or repeat), and "group"/"use parenthesis" at r:alt & r:repeat. Check if expression has been grouped before re-grouping again. 
 
-;#| Tests
+;;; One intermediate expression to use is lists to differentiate if it's a seq, quote-string, char-from, etc. The tags can then be used to group or check if 
+;;; an expression has been regrouped. 
 
-(r:run-tests r:test-cases r:grep eval-regexp)
-;Value: #t
+
+;;; Problem 1.4
+;;; r:backref -> expression that was captured with r:alt, r:repeat, r:*, r:+
+(define (r:backref number)
+	(r:seq "\\\\" (number->string number)))
+
+
+;;; Problem 1.5 (gist of it)
+;;; a. EREs extend on some BREs, and have different quotations. 
+;;; ERE: ?, +, | for alt
+;;; BRE: special meaning (except .) if preceded by \
+;;; ERE: special meaning unless preceded by \ 
+;;; 
+;;; b. Layer 1: List as intermediate representation of expressions you want to have, grouped as needed. 
+;;;    Layer 2: Evaluation step (BRE or ERE) that makes sure the expressions are read correctly, accounting for special quotations. 
+
 
