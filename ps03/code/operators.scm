@@ -1,3 +1,6 @@
+;;Manushaqe Muco
+;;manjola@mit.edu
+
 ;;;; Arithmetic operators
 
 (define (operator? object)
@@ -85,4 +88,9 @@
     (sqrt (domain) domain)
     (tan (domain) domain)
     (truncate (domain) domain)
+
+    ;;;Adding this makes (vector (sin cos) 3) work
+    (vector (domain domain) domain)
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
     (zero? (domain) boolean)))
